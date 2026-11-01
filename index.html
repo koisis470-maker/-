@@ -44,7 +44,7 @@
     sidebar {
       position: fixed;
       top: 0; bottom: 0; left: 0;
-      width: 300px;
+      width: 310px;
       background-color: var(--bg-card);
       border-right: 1px solid var(--border);
       display: flex;
@@ -61,7 +61,7 @@
       position: static;
       transform: none !important;
       box-shadow: none;
-      width: 290px;
+      width: 300px;
       flex-shrink: 0;
     }
     body.pc-mode .sidebar-overlay { display: none !important; }
@@ -141,58 +141,90 @@
       color: var(--text-sub);
       margin-bottom: 10px;
       padding-left: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    .char-list { display: flex; flex-direction: column; gap: 6px; }
+    .char-list { display: flex; flex-direction: column; gap: 8px; }
 
-    .char-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 10px;
-      border-radius: 10px;
+    .char-card-item {
       background: rgba(255,255,255,0.02);
       border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    .char-avatar-container {
-      position: relative;
-      cursor: pointer;
+    .char-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .char-info-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .char-avatar-preview {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #2a2a35;
+      object-fit: cover;
+      border: 1.5px solid var(--border);
       flex-shrink: 0;
     }
 
-    .char-avatar {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background-color: #2a2a35;
-      object-fit: cover;
-      border: 2px solid var(--border);
-      display: block;
+    .char-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .char-avatar-overlay {
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.5);
+    /* Multi Avatar Grid */
+    .avatar-slots-grid {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding-top: 4px;
+      border-top: 1px dashed rgba(255,255,255,0.06);
+    }
+
+    .avatar-slot-thumb {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      position: relative;
+    }
+    .avatar-slot-thumb.active { border-color: var(--accent); box-shadow: 0 0 8px rgba(99,102,241,0.5); }
+
+    .avatar-add-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1.5px dashed var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text-sub);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #fff;
-      opacity: 0;
-      transition: opacity 0.2s ease;
+      cursor: pointer;
+      transition: all 0.15s;
     }
-    .char-avatar-container:hover .char-avatar-overlay { opacity: 1; }
-
-    .char-name {
-      font-size: 0.9rem;
-      font-weight: 600;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-      color: #f1f5f9;
-    }
+    .avatar-add-btn:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: var(--accent); }
 
     /* Main Area Layout */
     main {
@@ -450,14 +482,11 @@
       cursor: pointer;
       transition: transform 0.2s ease;
     }
-    /* 모바일 모드 일러스트 크기 축소 (38vh로 조정) */
     body.mobile-mode .vn-avatar-large {
       max-height: 38vh;
       max-width: 75vw;
       object-fit: contain;
     }
-
-    /* PC 모드: 대사창(vn-dialog-box)의 바로 왼쪽 상단 위에 딱 붙도록 위치 고정 */
     body.pc-mode .vn-avatar-large {
       position: relative;
       bottom: -4px;
@@ -560,6 +589,30 @@
     }
     .mobile-nav-item.active { color: var(--accent); font-weight: 700; }
 
+    /* Toggle Switch Style */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 34px;
+      height: 18px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background-color: #333342;
+      transition: .2s; border-radius: 18px;
+      border: 1px solid var(--border);
+    }
+    .slider:before {
+      position: absolute; content: "";
+      height: 12px; width: 12px;
+      left: 2px; bottom: 2px;
+      background-color: white;
+      transition: .2s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--accent); }
+    input:checked + .slider:before { transform: translateX(16px); }
+
     /* Lightbox Modal */
     .modal {
       display: none;
@@ -617,7 +670,9 @@
     </div>
 
     <div class="char-section">
-      <div class="section-title">등장 캐릭터 및 아바타 설정</div>
+      <div class="section-title">
+        <span>캐릭터 아바타 설정</span>
+      </div>
       <div class="char-list" id="charList">
         <div style="font-size: 0.8rem; color: var(--text-sub); text-align: center; padding: 20px 0;">
           로그를 불러오면 캐릭터 목록이 나타납니다.
@@ -719,7 +774,7 @@
 
     let sessions = [];
     let activeSessionIndex = 0;
-    let charAvatars = {};
+    let charAvatars = {}; // { charName: { avatars: [...], activeIndex: 0, sync: true } }
     let selectedCharForUpload = null;
     let currentVnIndex = 0;
     let currentMode = 'list';
@@ -799,7 +854,8 @@
         sessions.push({
           id: Date.now() + Math.random(),
           name: file.name.replace(/\.[^/.]+$/, ""),
-          logs: logs
+          logs: logs,
+          sessionAvatars: {} // 세션별 개별 아바타 오버라이드 (동기화 OFF 시 사용)
         });
       }
       activeSessionIndex = sessions.length - 1;
@@ -961,6 +1017,7 @@
       }
 
       sessions.forEach((s, idx) => {
+        if (!s.sessionAvatars) s.sessionAvatars = {};
         const tab = document.createElement('div');
         tab.className = `tab ${idx === activeSessionIndex ? 'active' : ''}`;
         tab.innerHTML = `<span>${escapeHtml(s.name)}</span> <i data-lucide="x" class="close-btn" onclick="closeSession(${idx}, event)"></i>`;
@@ -1020,23 +1077,64 @@
       }
 
       activeSpeakers.forEach(name => {
-        const item = document.createElement('div');
-        item.className = 'char-item';
-        const avatarSrc = charAvatars[name] || '';
+        if (!charAvatars[name]) {
+          charAvatars[name] = { avatars: [], activeIndex: 0, sync: true };
+        }
+        const charData = charAvatars[name];
+        const currentSession = sessions[activeSessionIndex];
+        if (!currentSession.sessionAvatars) currentSession.sessionAvatars = {};
+        
+        let activeIdx = charData.sync ? charData.activeIndex : (currentSession.sessionAvatars[name] ?? charData.activeIndex);
+        const activeImg = charData.avatars[activeIdx] || charData.avatars[0] || '';
 
-        item.innerHTML = `
-          <div class="char-avatar-container" onclick="openAvatarSelector('${escapeHtml(name)}')">
-            ${avatarSrc 
-              ? `<img src="${avatarSrc}" class="char-avatar">` 
-              : `<div class="char-avatar" style="display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--text-sub);">${escapeHtml(name.charAt(0).toUpperCase())}</div>`
-            }
-            <div class="char-avatar-overlay"><i data-lucide="camera" style="width:16px;height:16px;"></i></div>
+        const card = document.createElement('div');
+        card.className = 'char-card-item';
+
+        let slotsHtml = '';
+        charData.avatars.forEach((imgSrc, imgIdx) => {
+          slotsHtml += `<img src="${imgSrc}" class="avatar-slot-thumb ${imgIdx === activeIdx ? 'active' : ''}" onclick="selectCharAvatar('${escapeHtml(name)}', ${imgIdx})" title="이미지 ${imgIdx+1}">`;
+        });
+        slotsHtml += `<div class="avatar-add-btn" onclick="openAvatarSelector('${escapeHtml(name)}')" title="이미지 추가"><i data-lucide="plus" style="width:16px;height:16px;"></i></div>`;
+
+        card.innerHTML = `
+          <div class="char-item-header">
+            <div class="char-info-left">
+              ${activeImg 
+                ? `<img src="${activeImg}" class="char-avatar-preview" onclick="openLightbox('${activeImg}')">` 
+                : `<div class="char-avatar-preview" style="display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--text-sub);">${escapeHtml(name.charAt(0).toUpperCase())}</div>`
+              }
+              <div class="char-name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px; font-size: 0.7rem; color: var(--text-sub);" title="이 캐릭터를 다른 세션과 동기화할지 여부">
+              <span>동기화</span>
+              <label class="switch">
+                <input type="checkbox" ${charData.sync ? 'checked' : ''} onchange="toggleCharacterSync('${escapeHtml(name)}', this.checked)">
+                <span class="slider"></span>
+              </label>
+            </div>
           </div>
-          <div class="char-name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
+          <div class="avatar-slots-grid">
+            ${slotsHtml}
+          </div>
         `;
-        charList.appendChild(item);
+        charList.appendChild(card);
       });
       lucide.createIcons();
+    }
+
+    function toggleCharacterSync(charName, isSync) {
+      if (charAvatars[charName]) {
+        charAvatars[charName].sync = isSync;
+        if (!isSync) {
+          const currentSession = sessions[activeSessionIndex];
+          if (currentSession) {
+            if (!currentSession.sessionAvatars) currentSession.sessionAvatars = {};
+            currentSession.sessionAvatars[charName] = charAvatars[charName].activeIndex;
+          }
+        }
+        saveToLocalStorage();
+        updateUI();
+      }
     }
 
     function openAvatarSelector(charName) {
@@ -1049,13 +1147,51 @@
       if (file && selectedCharForUpload) {
         const reader = new FileReader();
         reader.onload = (event) => {
-          charAvatars[selectedCharForUpload] = event.target.result;
+          const name = selectedCharForUpload;
+          if (!charAvatars[name]) {
+            charAvatars[name] = { avatars: [], activeIndex: 0, sync: true };
+          }
+          charAvatars[name].avatars.push(event.target.result);
+          if (charAvatars[name].avatars.length === 1) {
+            charAvatars[name].activeIndex = 0;
+          }
           saveToLocalStorage();
           updateUI();
         };
         reader.readAsDataURL(file);
       }
       e.target.value = '';
+    }
+
+    function selectCharAvatar(charName, imgIdx) {
+      if (charAvatars[charName]) {
+        if (charAvatars[charName].sync) {
+          charAvatars[charName].activeIndex = imgIdx;
+        } else {
+          const currentSession = sessions[activeSessionIndex];
+          if (currentSession) {
+            if (!currentSession.sessionAvatars) currentSession.sessionAvatars = {};
+            currentSession.sessionAvatars[charName] = imgIdx;
+          }
+        }
+        saveToLocalStorage();
+        updateUI();
+      }
+    }
+
+    function getActiveAvatarForSpeaker(speakerName) {
+      if (!charAvatars[speakerName]) return '';
+      const charData = charAvatars[speakerName];
+      if (charData.sync) {
+        return charData.avatars[charData.activeIndex] || charData.avatars[0] || '';
+      } else {
+        const currentSession = sessions[activeSessionIndex];
+        if (currentSession && currentSession.sessionAvatars && currentSession.sessionAvatars[speakerName] !== undefined) {
+          const idx = currentSession.sessionAvatars[speakerName];
+          return charData.avatars[idx] || charData.avatars[0] || '';
+        }
+        return charData.avatars[charData.activeIndex] || charData.avatars[0] || '';
+      }
     }
 
     function renderListView() {
@@ -1076,7 +1212,7 @@
       sessions[activeSessionIndex].logs.forEach(log => {
         const card = document.createElement('div');
         card.className = 'chat-card';
-        const avatar = charAvatars[log.speaker] || '';
+        const avatar = getActiveAvatarForSpeaker(log.speaker);
 
         const avatarHtml = avatar 
           ? `<img src="${avatar}" class="chat-avatar" onclick="openLightbox('${avatar}')">`
@@ -1132,9 +1268,10 @@
 
       const avatarImg = document.getElementById('vnAvatar');
       const placeholder = document.getElementById('vnAvatarPlaceholder');
+      const avatarSrc = getActiveAvatarForSpeaker(log.speaker);
 
-      if (charAvatars[log.speaker]) {
-        avatarImg.src = charAvatars[log.speaker];
+      if (avatarSrc) {
+        avatarImg.src = avatarSrc;
         avatarImg.style.display = 'block';
         placeholder.style.display = 'none';
       } else {
