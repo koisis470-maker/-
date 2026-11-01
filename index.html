@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>코코포리아 뷰어 & 백업 아카이버</title>
+  <title>코코포리아 뷰어 & 백업 아카이버 (폴더 기능)</title>
   <!-- Lucide Icons & JSZip CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -44,7 +44,7 @@
     sidebar {
       position: fixed;
       top: 0; bottom: 0; left: 0;
-      width: 310px;
+      width: 320px;
       background-color: var(--bg-card);
       border-right: 1px solid var(--border);
       display: flex;
@@ -61,7 +61,7 @@
       position: static;
       transform: none !important;
       box-shadow: none;
-      width: 300px;
+      width: 310px;
       flex-shrink: 0;
     }
     body.pc-mode .sidebar-overlay { display: none !important; }
@@ -127,11 +127,32 @@
 
     .file-input-wrapper { display: none; }
 
-    .char-section {
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
+    }
+    .sidebar-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .sidebar-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(255,255,255,0.02); }
+
+    .sidebar-content-pane {
       flex: 1;
       overflow-y: auto;
       padding: 12px;
+      display: none;
     }
+    .sidebar-content-pane.active { display: flex; flex-direction: column; gap: 10px; }
 
     .section-title {
       font-size: 0.75rem;
@@ -139,50 +160,60 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--text-sub);
-      margin-bottom: 10px;
-      padding-left: 4px;
+      margin-bottom: 6px;
+      padding-left: 2px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .char-list { display: flex; flex-direction: column; gap: 8px; }
+    /* 폴더 트리 UI */
+    .folder-create-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .folder-create-input {
+      flex: 1;
+      background: #1e1e28;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: #fff;
+      font-size: 0.82rem;
+      outline: none;
+    }
+    .folder-create-input:focus { border-color: var(--accent); }
 
-    .char-card-item {
+    .folder-list { display: flex; flex-direction: column; gap: 6px; }
+    
+    .folder-item {
       background: rgba(255,255,255,0.02);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      overflow: hidden;
+      transition: all 0.15s ease;
     }
+    .folder-item.active-folder { border-color: var(--accent); background: rgba(99,102,241,0.05); }
 
-    .char-item-header {
+    .folder-header {
+      padding: 10px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      cursor: pointer;
+      user-select: none;
     }
+    .folder-header:hover { background: rgba(255,255,255,0.04); }
 
-    .char-info-left {
+    .folder-title-area {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       min-width: 0;
+      flex: 1;
     }
-
-    .char-avatar-preview {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #2a2a35;
-      object-fit: cover;
-      border: 1.5px solid var(--border);
-      flex-shrink: 0;
-    }
-
-    .char-name {
+    .folder-name {
       font-size: 0.88rem;
       font-weight: 600;
       color: #f1f5f9;
@@ -190,41 +221,120 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    .folder-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .folder-action-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .folder-action-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
 
-    /* Multi Avatar Grid */
+    .folder-sessions {
+      padding: 4px 8px 8px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-top: 1px dashed rgba(255,255,255,0.06);
+      background: rgba(0,0,0,0.15);
+    }
+
+    .session-node {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      color: var(--text-sub);
+      background: transparent;
+      border: 1px solid transparent;
+    }
+    .session-node:hover { background: rgba(255,255,255,0.04); color: #fff; }
+    .session-node.active { background: var(--accent); color: #fff; font-weight: 600; }
+    .session-node span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+
+    .session-node-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.7;
+    }
+    .session-node:hover .session-node-actions { opacity: 1; }
+
+    /* 캐릭터 카드 스타일 */
+    .char-list { display: flex; flex-direction: column; gap: 8px; }
+    .char-card-item {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .char-info-row { display: flex; align-items: center; justify-content: space-between; }
+    .char-name-area { display: flex; align-items: center; gap: 8px; overflow: hidden; }
+    .char-thumb {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: #2a2a35;
+      object-fit: cover;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .char-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
     .avatar-slots-grid {
       display: flex;
       gap: 6px;
       flex-wrap: wrap;
       padding-top: 4px;
-      border-top: 1px dashed rgba(255,255,255,0.06);
+      border-top: 1px dashed rgba(255,255,255,0.08);
     }
-
-    .avatar-slot-thumb {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      object-fit: cover;
-      border: 1.5px solid var(--border);
-      cursor: pointer;
+    .avatar-slot {
+      width: 38px; height: 38px;
+      border-radius: 8px;
+      background: #1e1e28;
+      border: 1px solid var(--border);
       position: relative;
-    }
-    .avatar-slot-thumb.active { border-color: var(--accent); box-shadow: 0 0 8px rgba(99,102,241,0.5); }
-
-    .avatar-add-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
-      border: 1.5px dashed var(--border);
-      background: rgba(255,255,255,0.03);
-      color: var(--text-sub);
+      cursor: pointer;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      transition: all 0.15s;
     }
-    .avatar-add-btn:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: var(--accent); }
+    .avatar-slot img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-slot.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(99,102,241,0.4); }
+    .avatar-slot .slot-add { color: var(--text-sub); font-size: 1.1rem; }
+    .avatar-slot .slot-del {
+      position: absolute; top: 0; right: 0;
+      background: rgba(0,0,0,0.7);
+      color: #ff6b6b;
+      font-size: 10px;
+      width: 14px; height: 14px;
+      display: none;
+      align-items: center; justify-content: center;
+      border-bottom-left-radius: 6px;
+    }
+    .avatar-slot:hover .slot-del { display: flex; }
 
     /* Main Area Layout */
     main {
@@ -379,8 +489,7 @@
     body.pc-mode .chat-card .chat-body { background: var(--bg-card); border: 1px solid var(--border); padding: 10px 14px; border-radius: 10px; }
 
     .chat-avatar {
-      width: 40px;
-      height: 40px;
+      width: 40px; height: 40px;
       border-radius: 8px;
       object-fit: cover;
       cursor: pointer;
@@ -390,8 +499,7 @@
     }
 
     .chat-avatar-placeholder {
-      width: 40px;
-      height: 40px;
+      width: 40px; height: 40px;
       border-radius: 8px;
       flex-shrink: 0;
       background: #252530;
@@ -487,6 +595,7 @@
       max-width: 75vw;
       object-fit: contain;
     }
+
     body.pc-mode .vn-avatar-large {
       position: relative;
       bottom: -4px;
@@ -497,8 +606,7 @@
     }
 
     .vn-avatar-placeholder {
-      width: 140px;
-      height: 180px;
+      width: 140px; height: 180px;
       background: rgba(25, 25, 35, 0.8);
       border: 2px dashed rgba(255,255,255,0.15);
       border-radius: 16px;
@@ -513,8 +621,7 @@
       position: relative;
       bottom: -4px;
       left: 0;
-      width: 180px;
-      height: 240px;
+      width: 180px; height: 240px;
       z-index: 12;
     }
 
@@ -589,30 +696,6 @@
     }
     .mobile-nav-item.active { color: var(--accent); font-weight: 700; }
 
-    /* Toggle Switch Style */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 34px;
-      height: 18px;
-    }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute; cursor: pointer; inset: 0;
-      background-color: #333342;
-      transition: .2s; border-radius: 18px;
-      border: 1px solid var(--border);
-    }
-    .slider:before {
-      position: absolute; content: "";
-      height: 12px; width: 12px;
-      left: 2px; bottom: 2px;
-      background-color: white;
-      transition: .2s; border-radius: 50%;
-    }
-    input:checked + .slider { background-color: var(--accent); }
-    input:checked + .slider:before { transform: translateX(16px); }
-
     /* Lightbox Modal */
     .modal {
       display: none;
@@ -636,6 +719,18 @@
       gap: 12px;
       text-align: center;
       padding: 24px;
+    }
+
+    /* 인라인 편집 입력창 스타일 */
+    .inline-edit-input {
+      background: #1e1e28;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.85rem;
+      padding: 2px 6px;
+      outline: none;
+      width: 100%;
     }
   </style>
 </head>
@@ -669,9 +764,40 @@
       <input type="file" id="avatarFileInput" class="file-input-wrapper" accept="image/*">
     </div>
 
-    <div class="char-section">
+    <!-- 사이드바 탭 메뉴 (세션/폴더 관리 vs 캐릭터 아바타) -->
+    <div class="sidebar-tabs">
+      <button class="sidebar-tab active" id="tabNavSessions" onclick="switchSidebarTab('sessions')">
+        <i data-lucide="folder" style="width:14px; vertical-align:middle;"></i> 세션 & 폴더
+      </button>
+      <button class="sidebar-tab" id="tabNavChars" onclick="switchSidebarTab('chars')">
+        <i data-lucide="users" style="width:14px; vertical-align:middle;"></i> 캐릭터 아바타
+      </button>
+    </div>
+
+    <!-- 1. 세션 및 폴더 관리 패널 -->
+    <div class="sidebar-content-pane active" id="paneSessions">
+      <div class="section-title">
+        <span>폴더 및 세션 정리</span>
+      </div>
+      <div class="folder-create-bar">
+        <input type="text" id="newFolderNameInput" class="folder-create-input" placeholder="새 폴더 이름 입력...">
+        <button class="btn btn-primary" style="padding: 6px 10px; font-size: 0.8rem;" onclick="createNewFolder()">
+          <i data-lucide="folder-plus" style="width:14px;"></i> 생성
+        </button>
+      </div>
+
+      <div class="folder-list" id="folderListContainer">
+        <!-- 폴더 및 세션 트리 동적 렌더링 영역 -->
+      </div>
+    </div>
+
+    <!-- 2. 캐릭터 아바타 패널 -->
+    <div class="sidebar-content-pane" id="paneChars">
       <div class="section-title">
         <span>캐릭터 아바타 설정</span>
+        <label style="font-size: 0.72rem; display: flex; align-items: center; gap: 4px; cursor: pointer; color: var(--text-main);" title="이 캐릭터 설정과 이미지를 다른 모든 세션에 동일하게 적용합니다">
+          <input type="checkbox" id="syncAvatarsToggle" onchange="toggleAvatarSync(this.checked)" style="accent-color: var(--accent);"> 캐릭터만 동기화
+        </label>
       </div>
       <div class="char-list" id="charList">
         <div style="font-size: 0.8rem; color: var(--text-sub); text-align: center; padding: 20px 0;">
@@ -759,7 +885,7 @@
         <i data-lucide="tv"></i> VN 뷰
       </button>
       <button class="mobile-nav-item" onclick="toggleSidebar(true)">
-        <i data-lucide="users"></i> 캐릭터/메뉴
+        <i data-lucide="users"></i> 메뉴/캐릭터
       </button>
     </div>
   </main>
@@ -773,8 +899,14 @@
     lucide.createIcons();
 
     let sessions = [];
+    let folders = []; // 폴더 배열: [{ id: 'f1', name: '기본 폴더', sessionIds: [...] }]
     let activeSessionIndex = 0;
-    let charAvatars = {}; // { charName: { avatars: [...], activeIndex: 0, sync: true } }
+    
+    // 캐릭터별 다중 아바타 동기화 구조
+    let syncAvatars = true;
+    let globalAvatars = {};
+    let sessionAvatars = {};
+
     let selectedCharForUpload = null;
     let currentVnIndex = 0;
     let currentMode = 'list';
@@ -827,6 +959,13 @@
       }
     }
 
+    function switchSidebarTab(tabName) {
+      document.getElementById('tabNavSessions').classList.toggle('active', tabName === 'sessions');
+      document.getElementById('tabNavChars').classList.toggle('active', tabName === 'chars');
+      document.getElementById('paneSessions').classList.toggle('active', tabName === 'sessions');
+      document.getElementById('paneChars').classList.toggle('active', tabName === 'chars');
+    }
+
     function setDeviceMode(mode) {
       deviceMode = mode;
       document.body.classList.toggle('pc-mode', mode === 'pc');
@@ -848,18 +987,34 @@
       const files = Array.from(e.target.files);
       if (files.length === 0) return;
 
+      // 만약 폴더가 하나도 없다면 기본 '미분류' 폴더 생성
+      if (folders.length === 0) {
+        folders.push({ id: 'folder_' + Date.now(), name: '기본 폴더', sessionIds: [] });
+      }
+
+      // 첫 번째 폴더에 새로 추가된 세션들을 기본으로 포함시킴
+      const targetFolder = folders[0];
+
       for (const file of files) {
         const text = await file.text();
         const logs = parseCocofoliaHtml(text);
+        const newId = 'sess_' + (Date.now() + Math.random());
         sessions.push({
-          id: Date.now() + Math.random(),
+          id: newId,
           name: file.name.replace(/\.[^/.]+$/, ""),
-          logs: logs,
-          sessionAvatars: {} // 세션별 개별 아바타 오버라이드 (동기화 OFF 시 사용)
+          logs: logs
         });
+        targetFolder.sessionIds.push(newId);
+        if (!sessionAvatars[newId]) {
+          sessionAvatars[newId] = {};
+        }
       }
-      activeSessionIndex = sessions.length - 1;
+      
+      // 새로 추가된 세션 중 첫 번째 세션을 활성 세션으로 지정
+      const newlyAddedFirst = sessions[sessions.length - files.length];
+      activeSessionIndex = sessions.indexOf(newlyAddedFirst);
       currentVnIndex = 0;
+
       saveToLocalStorage();
       updateUI();
       toggleSidebar(false);
@@ -962,7 +1117,10 @@
     function saveToLocalStorage() {
       try {
         localStorage.setItem('ccf_sessions', JSON.stringify(sessions));
-        localStorage.setItem('ccf_avatars', JSON.stringify(charAvatars));
+        localStorage.setItem('ccf_folders', JSON.stringify(folders));
+        localStorage.setItem('ccf_sync_avatars', JSON.stringify(syncAvatars));
+        localStorage.setItem('ccf_global_avatars', JSON.stringify(globalAvatars));
+        localStorage.setItem('ccf_session_avatars', JSON.stringify(sessionAvatars));
       } catch (e) {
         console.warn("로컬 저장소 저장 실패:", e);
       }
@@ -971,20 +1129,46 @@
     function loadFromLocalStorage() {
       try {
         const savedSessions = localStorage.getItem('ccf_sessions');
-        const savedAvatars = localStorage.getItem('ccf_avatars');
+        const savedFolders = localStorage.getItem('ccf_folders');
+        const savedSync = localStorage.getItem('ccf_sync_avatars');
+        const savedGlobal = localStorage.getItem('ccf_global_avatars');
+        const savedSessionAvatars = localStorage.getItem('ccf_session_avatars');
+
         if (savedSessions) sessions = JSON.parse(savedSessions);
-        if (savedAvatars) charAvatars = JSON.parse(savedAvatars);
+        if (savedFolders) folders = JSON.parse(savedFolders);
+        if (savedSync !== null) syncAvatars = JSON.parse(savedSync);
+        if (savedGlobal) globalAvatars = JSON.parse(savedGlobal);
+        if (savedSessionAvatars) sessionAvatars = JSON.parse(savedSessionAvatars);
+
+        // 데이터 정합성 검증: 만약 세션은 존재하는데 폴더에 속해있지 않다면 첫 번째 폴더에 수용
+        if (sessions.length > 0 && folders.length === 0) {
+          folders.push({
+            id: 'folder_default',
+            name: '기본 폴더',
+            sessionIds: sessions.map(s => s.id)
+          });
+        } else if (sessions.length > 0 && folders.length > 0) {
+          const assignedIds = new Set();
+          folders.forEach(f => f.sessionIds.forEach(id => assignedIds.add(id)));
+          sessions.forEach(s => {
+            if (!assignedIds.has(s.id)) {
+              folders[0].sessionIds.push(s.id);
+            }
+          });
+        }
       } catch (e) {
         console.error("저장소 로드 실패:", e);
       }
     }
 
     function clearLocalStorageData() {
-      if (confirm("저장된 모든 세션 로그와 캐릭터 아바타를 초기화하시겠습니까?")) {
-        localStorage.removeItem('ccf_sessions');
-        localStorage.removeItem('ccf_avatars');
+      if (confirm("저장된 모든 세션 로그, 폴더 및 캐릭터 아바타를 초기화하시겠습니까?")) {
+        localStorage.clear();
         sessions = [];
-        charAvatars = {};
+        folders = [];
+        globalAvatars = {};
+        sessionAvatars = {};
+        syncAvatars = true;
         activeSessionIndex = 0;
         currentVnIndex = 0;
         updateUI();
@@ -992,9 +1176,170 @@
       }
     }
 
+    function toggleAvatarSync(isChecked) {
+      syncAvatars = isChecked;
+      saveToLocalStorage();
+      updateUI();
+    }
+
+    function getCharAvatarObj(charName) {
+      if (syncAvatars) {
+        if (!globalAvatars[charName]) {
+          globalAvatars[charName] = { images: [], activeIndex: 0 };
+        }
+        return globalAvatars[charName];
+      } else {
+        const currSession = sessions[activeSessionIndex];
+        if (!currSession) return { images: [], activeIndex: 0 };
+        if (!sessionAvatars[currSession.id]) {
+          sessionAvatars[currSession.id] = {};
+        }
+        if (!sessionAvatars[currSession.id][charName]) {
+          sessionAvatars[currSession.id][charName] = { images: [], activeIndex: 0 };
+        }
+        return sessionAvatars[currSession.id][charName];
+      }
+    }
+
+    /* 폴더 관리 함수들 */
+    function createNewFolder() {
+      const input = document.getElementById('newFolderNameInput');
+      const name = input.value.trim();
+      if (!name) return;
+
+      const newFolderId = 'folder_' + Date.now();
+      folders.push({
+        id: newFolderId,
+        name: name,
+        sessionIds: []
+      });
+      input.value = '';
+      saveToLocalStorage();
+      updateUI();
+    }
+
+    function deleteFolder(folderId, event) {
+      event.stopPropagation();
+      if (confirm("이 폴더를 삭제하시겠습니까? 폴더 안에 있던 세션들도 함께 삭제됩니다.")) {
+        const folder = folders.find(f => f.id === folderId);
+        if (folder) {
+          // 해당 폴더의 세션들 삭제
+          folder.sessionIds.forEach(sId => {
+            const sIdx = sessions.findIndex(s => s.id === sId);
+            if (sIdx !== -1) sessions.splice(sIdx, 1);
+          });
+        }
+        folders = folders.filter(f => f.id !== folderId);
+        if (activeSessionIndex >= sessions.length) {
+          activeSessionIndex = Math.max(0, sessions.length - 1);
+        }
+        currentVnIndex = 0;
+        saveToLocalStorage();
+        updateUI();
+      }
+    }
+
+    function startInlineEditFolder(folderId, event) {
+      event.stopPropagation();
+      const folder = folders.find(f => f.id === folderId);
+      if (!folder) return;
+
+      const nameSpan = document.getElementById(`folder_name_${folderId}`);
+      if (!nameSpan) return;
+
+      const currentName = folder.name;
+      nameSpan.innerHTML = `<input type="text" id="input_edit_${folderId}" class="inline-edit-input" value="${escapeHtml(currentName)}" onclick="event.stopPropagation()">`;
+      
+      const inputEl = document.getElementById(`input_edit_${folderId}`);
+      inputEl.focus();
+      inputEl.select();
+
+      inputEl.onblur = () => finishInlineEditFolder(folderId, inputEl.value);
+      inputEl.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          finishInlineEditFolder(folderId, inputEl.value);
+        } else if (e.key === 'Escape') {
+          updateUI();
+        }
+      };
+    }
+
+    function finishInlineEditFolder(folderId, newName) {
+      const trimmed = newName.trim();
+      if (trimmed) {
+        const folder = folders.find(f => f.id === folderId);
+        if (folder) {
+          folder.name = trimmed;
+          saveToLocalStorage();
+        }
+      }
+      updateUI();
+    }
+
+    function removeSessionFromFolder(sessionId, event) {
+      event.stopPropagation();
+      if (confirm("세션을 목록에서 완전히 삭제하시겠습니까?")) {
+        sessions = sessions.filter(s => s.id !== sessionId);
+        folders.forEach(f => {
+          f.sessionIds = f.sessionIds.filter(id => id !== sessionId);
+        });
+        if (activeSessionIndex >= sessions.length) {
+          activeSessionIndex = Math.max(0, sessions.length - 1);
+        }
+        currentVnIndex = 0;
+        saveToLocalStorage();
+        updateUI();
+      }
+    }
+
+    function moveSessionToAnotherFolder(sessionId, event) {
+      event.stopPropagation();
+      if (folders.length <= 1) {
+        alert("이동할 다른 폴더가 없습니다. 먼저 새 폴더를 생성해주세요.");
+        return;
+      }
+
+      // 현재 세션이 속한 폴더 찾기
+      const currentFolder = folders.find(f => f.sessionIds.includes(sessionId));
+      const otherFolders = folders.filter(f => !f.sessionIds.includes(sessionId));
+
+      let promptMsg = "이동할 폴더를 선택하세요:\n";
+      otherFolders.forEach((f, idx) => {
+        promptMsg += `${idx + 1}. ${f.name}\n`;
+      });
+
+      const choice = prompt(promptMsg);
+      if (choice === null) return;
+      const choiceIdx = parseInt(choice, 10) - 1;
+
+      if (!isNaN(choiceIdx) && choiceIdx >= 0 && choiceIdx < otherFolders.length) {
+        const destFolder = otherFolders[choiceIdx];
+        if (currentFolder) {
+          currentFolder.sessionIds = currentFolder.sessionIds.filter(id => id !== sessionId);
+        }
+        destFolder.sessionIds.push(sessionId);
+        saveToLocalStorage();
+        updateUI();
+      } else {
+        alert("올바른 폴더 번호를 입력해주세요.");
+      }
+    }
+
+    function selectSessionById(sessionId) {
+      const idx = sessions.findIndex(s => s.id === sessionId);
+      if (idx !== -1) {
+        activeSessionIndex = idx;
+        currentVnIndex = 0;
+        updateUI();
+      }
+    }
+
     function updateUI() {
       document.getElementById('btnExport').disabled = (sessions.length === 0);
+      document.getElementById('syncAvatarsToggle').checked = syncAvatars;
+
       renderSessionSelectors();
+      renderFoldersTree();
       renderCharacters();
 
       if (currentMode === 'list') {
@@ -1017,7 +1362,6 @@
       }
 
       sessions.forEach((s, idx) => {
-        if (!s.sessionAvatars) s.sessionAvatars = {};
         const tab = document.createElement('div');
         tab.className = `tab ${idx === activeSessionIndex ? 'active' : ''}`;
         tab.innerHTML = `<span>${escapeHtml(s.name)}</span> <i data-lucide="x" class="close-btn" onclick="closeSession(${idx}, event)"></i>`;
@@ -1048,11 +1392,85 @@
 
     function closeSession(index, event) {
       event.stopPropagation();
+      const targetSession = sessions[index];
+      if (!targetSession) return;
+
       sessions.splice(index, 1);
+      folders.forEach(f => {
+        f.sessionIds = f.sessionIds.filter(id => id !== targetSession.id);
+      });
+
       if (activeSessionIndex >= sessions.length) activeSessionIndex = Math.max(0, sessions.length - 1);
       currentVnIndex = 0;
       saveToLocalStorage();
       updateUI();
+    }
+
+    function renderFoldersTree() {
+      const container = document.getElementById('folderListContainer');
+      container.innerHTML = '';
+
+      if (folders.length === 0) {
+        container.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-sub); text-align: center; padding: 15px 0;">생성된 폴더가 없습니다.</div>';
+        return;
+      }
+
+      folders.forEach(folder => {
+        const activeSession = sessions[activeSessionIndex];
+        const isFolderContainsActive = activeSession && folder.sessionIds.includes(activeSession.id);
+
+        const folderDiv = document.createElement('div');
+        folderDiv.className = `folder-item ${isFolderContainsActive ? 'active-folder' : ''}`;
+
+        let sessionsHtml = '';
+        if (folder.sessionIds.length === 0) {
+          sessionsHtml = `<div style="font-size: 0.78rem; color: var(--text-sub); padding: 4px 0;">세션이 없습니다.</div>`;
+        } else {
+          folder.sessionIds.forEach(sId => {
+            const sess = sessions.find(s => s.id === sId);
+            if (!sess) return;
+            const isActiveSess = (activeSession && activeSession.id === sId);
+
+            sessionsHtml += `
+              <div class="session-node ${isActiveSess ? 'active' : ''}" onclick="selectSessionById('${sess.id}')">
+                <i data-lucide="file-text" style="width: 14px; flex-shrink:0;"></i>
+                <span title="${escapeHtml(sess.name)}">${escapeHtml(sess.name)}</span>
+                <div class="session-node-actions">
+                  <button class="folder-action-btn" title="폴더 이동" onclick="moveSessionToAnotherFolder('${sess.id}', event)"><i data-lucide="folder-input" style="width:12px;"></i></button>
+                  <button class="folder-action-btn" title="삭제" onclick="removeSessionFromFolder('${sess.id}', event)"><i data-lucide="x" style="width:12px;"></i></button>
+                </div>
+              </div>
+            `;
+          });
+        }
+
+        folderDiv.innerHTML = `
+          <div class="folder-header" onclick="toggleFolderOpen(this)">
+            <div class="folder-title-area">
+              <i data-lucide="folder" style="width: 16px; color: var(--accent); flex-shrink:0;"></i>
+              <span class="folder-name" id="folder_name_${folder.id}">${escapeHtml(folder.name)}</span>
+            </div>
+            <div class="folder-actions">
+              <button class="folder-action-btn" title="폴더 이름 수정" onclick="startInlineEditFolder('${folder.id}', event)"><i data-lucide="edit-2" style="width: 13px;"></i></button>
+              <button class="folder-action-btn" title="폴더 삭제" onclick="deleteFolder('${folder.id}', event)"><i data-lucide="trash-2" style="width: 13px; color: #ff6b6b;"></i></button>
+            </div>
+          </div>
+          <div class="folder-sessions">
+            ${sessionsHtml}
+          </div>
+        `;
+        container.appendChild(folderDiv);
+      });
+      lucide.createIcons();
+    }
+
+    function toggleFolderOpen(headerEl) {
+      const sessionsArea = headerEl.nextElementSibling;
+      if (sessionsArea.style.display === 'none') {
+        sessionsArea.style.display = 'flex';
+      } else {
+        sessionsArea.style.display = 'none';
+      }
     }
 
     function renderCharacters() {
@@ -1077,64 +1495,48 @@
       }
 
       activeSpeakers.forEach(name => {
-        if (!charAvatars[name]) {
-          charAvatars[name] = { avatars: [], activeIndex: 0, sync: true };
-        }
-        const charData = charAvatars[name];
-        const currentSession = sessions[activeSessionIndex];
-        if (!currentSession.sessionAvatars) currentSession.sessionAvatars = {};
-        
-        let activeIdx = charData.sync ? charData.activeIndex : (currentSession.sessionAvatars[name] ?? charData.activeIndex);
-        const activeImg = charData.avatars[activeIdx] || charData.avatars[0] || '';
+        const avatarObj = getCharAvatarObj(name);
+        const images = avatarObj.images || [];
+        const activeIdx = avatarObj.activeIndex || 0;
+        const thumbSrc = images.length > 0 && images[activeIdx] ? images[activeIdx] : '';
 
-        const card = document.createElement('div');
-        card.className = 'char-card-item';
+        const item = document.createElement('div');
+        item.className = 'char-card-item';
 
         let slotsHtml = '';
-        charData.avatars.forEach((imgSrc, imgIdx) => {
-          slotsHtml += `<img src="${imgSrc}" class="avatar-slot-thumb ${imgIdx === activeIdx ? 'active' : ''}" onclick="selectCharAvatar('${escapeHtml(name)}', ${imgIdx})" title="이미지 ${imgIdx+1}">`;
+        images.forEach((imgUrl, imgIdx) => {
+          const isActive = (imgIdx === activeIdx);
+          slotsHtml += `
+            <div class="avatar-slot ${isActive ? 'active' : ''}" onclick="setActiveAvatar('${escapeHtml(name)}', ${imgIdx})" title="클릭하여 기본 아바타로 지정">
+              <img src="${imgUrl}" alt="avatar">
+              <div class="slot-del" onclick="deleteAvatarImage(event, '${escapeHtml(name)}', ${imgIdx})" title="삭제">×</div>
+            </div>
+          `;
         });
-        slotsHtml += `<div class="avatar-add-btn" onclick="openAvatarSelector('${escapeHtml(name)}')" title="이미지 추가"><i data-lucide="plus" style="width:16px;height:16px;"></i></div>`;
+        slotsHtml += `
+          <div class="avatar-slot" onclick="openAvatarSelector('${escapeHtml(name)}')" title="아바타 이미지 추가">
+            <span class="slot-add">+</span>
+          </div>
+        `;
 
-        card.innerHTML = `
-          <div class="char-item-header">
-            <div class="char-info-left">
-              ${activeImg 
-                ? `<img src="${activeImg}" class="char-avatar-preview" onclick="openLightbox('${activeImg}')">` 
-                : `<div class="char-avatar-preview" style="display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--text-sub);">${escapeHtml(name.charAt(0).toUpperCase())}</div>`
+        item.innerHTML = `
+          <div class="char-info-row">
+            <div class="char-name-area">
+              ${thumbSrc 
+                ? `<img src="${thumbSrc}" class="char-thumb">` 
+                : `<div class="char-thumb" style="display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--text-sub);font-size:0.75rem;">${escapeHtml(name.charAt(0).toUpperCase())}</div>`
               }
               <div class="char-name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 4px; font-size: 0.7rem; color: var(--text-sub);" title="이 캐릭터를 다른 세션과 동기화할지 여부">
-              <span>동기화</span>
-              <label class="switch">
-                <input type="checkbox" ${charData.sync ? 'checked' : ''} onchange="toggleCharacterSync('${escapeHtml(name)}', this.checked)">
-                <span class="slider"></span>
-              </label>
-            </div>
+            <span style="font-size: 0.72rem; color: var(--text-sub);">${images.length}장 등록</span>
           </div>
           <div class="avatar-slots-grid">
             ${slotsHtml}
           </div>
         `;
-        charList.appendChild(card);
+        charList.appendChild(item);
       });
       lucide.createIcons();
-    }
-
-    function toggleCharacterSync(charName, isSync) {
-      if (charAvatars[charName]) {
-        charAvatars[charName].sync = isSync;
-        if (!isSync) {
-          const currentSession = sessions[activeSessionIndex];
-          if (currentSession) {
-            if (!currentSession.sessionAvatars) currentSession.sessionAvatars = {};
-            currentSession.sessionAvatars[charName] = charAvatars[charName].activeIndex;
-          }
-        }
-        saveToLocalStorage();
-        updateUI();
-      }
     }
 
     function openAvatarSelector(charName) {
@@ -1147,14 +1549,11 @@
       if (file && selectedCharForUpload) {
         const reader = new FileReader();
         reader.onload = (event) => {
-          const name = selectedCharForUpload;
-          if (!charAvatars[name]) {
-            charAvatars[name] = { avatars: [], activeIndex: 0, sync: true };
-          }
-          charAvatars[name].avatars.push(event.target.result);
-          if (charAvatars[name].avatars.length === 1) {
-            charAvatars[name].activeIndex = 0;
-          }
+          const avatarObj = getCharAvatarObj(selectedCharForUpload);
+          if (!avatarObj.images) avatarObj.images = [];
+          avatarObj.images.push(event.target.result);
+          avatarObj.activeIndex = avatarObj.images.length - 1;
+
           saveToLocalStorage();
           updateUI();
         };
@@ -1163,34 +1562,23 @@
       e.target.value = '';
     }
 
-    function selectCharAvatar(charName, imgIdx) {
-      if (charAvatars[charName]) {
-        if (charAvatars[charName].sync) {
-          charAvatars[charName].activeIndex = imgIdx;
-        } else {
-          const currentSession = sessions[activeSessionIndex];
-          if (currentSession) {
-            if (!currentSession.sessionAvatars) currentSession.sessionAvatars = {};
-            currentSession.sessionAvatars[charName] = imgIdx;
-          }
+    function setActiveAvatar(charName, imgIdx) {
+      const avatarObj = getCharAvatarObj(charName);
+      avatarObj.activeIndex = imgIdx;
+      saveToLocalStorage();
+      updateUI();
+    }
+
+    function deleteAvatarImage(event, charName, imgIdx) {
+      event.stopPropagation();
+      if (confirm("이 아바타 이미지를 삭제하시겠습니까?")) {
+        const avatarObj = getCharAvatarObj(charName);
+        avatarObj.images.splice(imgIdx, 1);
+        if (avatarObj.activeIndex >= avatarObj.images.length) {
+          avatarObj.activeIndex = Math.max(0, avatarObj.images.length - 1);
         }
         saveToLocalStorage();
         updateUI();
-      }
-    }
-
-    function getActiveAvatarForSpeaker(speakerName) {
-      if (!charAvatars[speakerName]) return '';
-      const charData = charAvatars[speakerName];
-      if (charData.sync) {
-        return charData.avatars[charData.activeIndex] || charData.avatars[0] || '';
-      } else {
-        const currentSession = sessions[activeSessionIndex];
-        if (currentSession && currentSession.sessionAvatars && currentSession.sessionAvatars[speakerName] !== undefined) {
-          const idx = currentSession.sessionAvatars[speakerName];
-          return charData.avatars[idx] || charData.avatars[0] || '';
-        }
-        return charData.avatars[charData.activeIndex] || charData.avatars[0] || '';
       }
     }
 
@@ -1212,7 +1600,11 @@
       sessions[activeSessionIndex].logs.forEach(log => {
         const card = document.createElement('div');
         card.className = 'chat-card';
-        const avatar = getActiveAvatarForSpeaker(log.speaker);
+        
+        const avatarObj = getCharAvatarObj(log.speaker);
+        const images = avatarObj.images || [];
+        const activeIdx = avatarObj.activeIndex || 0;
+        const avatar = (images.length > 0 && images[activeIdx]) ? images[activeIdx] : '';
 
         const avatarHtml = avatar 
           ? `<img src="${avatar}" class="chat-avatar" onclick="openLightbox('${avatar}')">`
@@ -1268,7 +1660,11 @@
 
       const avatarImg = document.getElementById('vnAvatar');
       const placeholder = document.getElementById('vnAvatarPlaceholder');
-      const avatarSrc = getActiveAvatarForSpeaker(log.speaker);
+
+      const avatarObj = getCharAvatarObj(log.speaker);
+      const images = avatarObj.images || [];
+      const activeIdx = avatarObj.activeIndex || 0;
+      const avatarSrc = (images.length > 0 && images[activeIdx]) ? images[activeIdx] : '';
 
       if (avatarSrc) {
         avatarImg.src = avatarSrc;
@@ -1337,7 +1733,13 @@
     async function exportArchive() {
       if (sessions.length === 0) return;
       const zip = new JSZip();
-      const payload = { sessions, charAvatars };
+      const payload = { 
+        sessions, 
+        folders,
+        syncAvatars, 
+        globalAvatars, 
+        sessionAvatars 
+      };
       zip.file("data.json", JSON.stringify(payload));
       const content = await zip.generateAsync({ type: "blob" });
       const a = document.createElement('a');
@@ -1354,7 +1756,19 @@
         const dataJson = await zip.file("data.json").async("string");
         const data = JSON.parse(dataJson);
         sessions = data.sessions || [];
-        charAvatars = data.charAvatars || {};
+        folders = data.folders || [];
+        syncAvatars = (data.syncAvatars !== undefined) ? data.syncAvatars : true;
+        globalAvatars = data.globalAvatars || {};
+        sessionAvatars = data.sessionAvatars || {};
+
+        if (sessions.length > 0 && folders.length === 0) {
+          folders.push({
+            id: 'folder_default',
+            name: '기본 폴더',
+            sessionIds: sessions.map(s => s.id)
+          });
+        }
+
         activeSessionIndex = 0;
         currentVnIndex = 0;
         saveToLocalStorage();
