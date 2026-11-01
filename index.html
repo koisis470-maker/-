@@ -423,8 +423,7 @@
       overflow: hidden;
       touch-action: pan-y;
     }
-    /* PC 모드 VN 뷰 여백 재조정 (상단 헤더 제거됨에 따른 대응) */
-    body.pc-mode .vn-container { padding: 40px 60px; justify-content: flex-end; }
+    body.pc-mode .vn-container { padding: 30px 60px; justify-content: flex-end; align-items: center; }
 
     .vn-stage {
       flex: 1;
@@ -436,7 +435,7 @@
       margin-bottom: 12px;
       overflow: hidden;
     }
-    body.pc-mode .vn-stage { align-items: center; }
+    body.pc-mode .vn-stage { width: 100%; max-width: 900px; justify-content: flex-start; align-items: flex-end; margin-bottom: 0; flex: none; }
 
     .vn-avatar-large {
       max-height: 100%;
@@ -446,12 +445,14 @@
       cursor: pointer;
       transition: transform 0.2s ease;
     }
+    /* PC 모드: 대사창(vn-dialog-box)의 바로 왼쪽 상단 위에 딱 붙도록 위치 고정 */
     body.pc-mode .vn-avatar-large {
-      position: absolute;
-      bottom: 0;
-      left: 40px;
-      max-height: 480px;
-      max-width: 320px;
+      position: relative;
+      bottom: -4px; /* 대사창 상단 모서리와 정렬 */
+      left: 0;
+      max-height: 420px;
+      max-width: 280px;
+      z-index: 12;
     }
 
     .vn-avatar-placeholder {
@@ -468,11 +469,12 @@
       color: var(--text-sub);
     }
     body.pc-mode .vn-avatar-placeholder {
-      position: absolute;
-      bottom: 0;
-      left: 40px;
-      width: 200px;
-      height: 280px;
+      position: relative;
+      bottom: -4px;
+      left: 0;
+      width: 180px;
+      height: 240px;
+      z-index: 12;
     }
 
     .vn-dialog-box {
@@ -519,7 +521,7 @@
       border-top: 1px solid rgba(255,255,255,0.08);
     }
 
-    /* Bottom Navigation Bar (Mobile Native Feel) */
+    /* Bottom Navigation Bar (Mobile View) */
     .mobile-nav-bar {
       height: 60px;
       background-color: var(--bg-card);
@@ -656,8 +658,6 @@
 
     <!-- 2. Visual Novel View -->
     <div class="vn-container" id="vnView" style="display: none;">
-      <!-- PC VN Header 삭제됨 -->
-
       <div class="vn-stage" id="vnTouchZone">
         <img id="vnAvatar" class="vn-avatar-large" src="" alt="Avatar" onclick="openLightbox(this.src)" style="display:none;">
         <div id="vnAvatarPlaceholder" class="vn-avatar-placeholder" style="display:none;">
