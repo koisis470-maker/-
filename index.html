@@ -435,6 +435,11 @@
       margin-bottom: 12px;
       overflow: hidden;
     }
+    body.mobile-mode .vn-stage {
+      align-items: flex-end;
+      justify-content: center;
+      max-height: calc(100vh - 220px);
+    }
     body.pc-mode .vn-stage { width: 100%; max-width: 900px; justify-content: flex-start; align-items: flex-end; margin-bottom: 0; flex: none; }
 
     .vn-avatar-large {
@@ -445,10 +450,17 @@
       cursor: pointer;
       transition: transform 0.2s ease;
     }
+    /* 모바일 모드 일러스트 크기 축소 (38vh로 조정) */
+    body.mobile-mode .vn-avatar-large {
+      max-height: 38vh;
+      max-width: 75vw;
+      object-fit: contain;
+    }
+
     /* PC 모드: 대사창(vn-dialog-box)의 바로 왼쪽 상단 위에 딱 붙도록 위치 고정 */
     body.pc-mode .vn-avatar-large {
       position: relative;
-      bottom: -4px; /* 대사창 상단 모서리와 정렬 */
+      bottom: -4px;
       left: 0;
       max-height: 420px;
       max-width: 280px;
