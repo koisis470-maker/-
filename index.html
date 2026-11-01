@@ -423,20 +423,8 @@
       overflow: hidden;
       touch-action: pan-y;
     }
-    body.pc-mode .vn-container { padding: 30px 60px; justify-content: space-between; }
-
-    .vn-header-bar {
-      display: none;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 20;
-      background: rgba(18, 18, 22, 0.7);
-      backdrop-filter: blur(8px);
-      padding: 8px 16px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    body.pc-mode .vn-header-bar { display: flex; }
+    /* PC 모드 VN 뷰 여백 재조정 (상단 헤더 제거됨에 따른 대응) */
+    body.pc-mode .vn-container { padding: 40px 60px; justify-content: flex-end; }
 
     .vn-stage {
       flex: 1;
@@ -462,7 +450,7 @@
       position: absolute;
       bottom: 0;
       left: 40px;
-      max-height: 450px;
+      max-height: 480px;
       max-width: 320px;
     }
 
@@ -668,17 +656,7 @@
 
     <!-- 2. Visual Novel View -->
     <div class="vn-container" id="vnView" style="display: none;">
-      <!-- PC VN Header -->
-      <div class="vn-header-bar">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-sub);">세션 선택:</span>
-          <select id="pcVnSessionSelect" style="background:#181820; color:#fff; border:1px solid var(--border); padding:6px 12px; border-radius:6px; font-size:0.85rem; outline:none;" onchange="changeActiveSession(this.value)"></select>
-        </div>
-        <div class="mode-selector">
-          <button class="view-btn" onclick="switchMode('list')">목록 뷰로 전환</button>
-          <button class="view-btn active">VN 뷰</button>
-        </div>
-      </div>
+      <!-- PC VN Header 삭제됨 -->
 
       <div class="vn-stage" id="vnTouchZone">
         <img id="vnAvatar" class="vn-avatar-large" src="" alt="Avatar" onclick="openLightbox(this.src)" style="display:none;">
@@ -963,13 +941,10 @@
       tabsContainer.innerHTML = '';
       const mobileSelect = document.getElementById('mobileSessionSelect');
       mobileSelect.innerHTML = '';
-      const pcVnSelect = document.getElementById('pcVnSessionSelect');
-      pcVnSelect.innerHTML = '';
 
       if (sessions.length === 0) {
         tabsContainer.innerHTML = '<span style="font-size: 0.82rem; color: var(--text-sub);">불러온 세션 파일이 없습니다.</span>';
         mobileSelect.innerHTML = '<option value="-1">불러온 세션이 없습니다</option>';
-        pcVnSelect.innerHTML = '<option value="-1">불러온 세션이 없습니다</option>';
         return;
       }
 
@@ -989,12 +964,6 @@
         opt1.textContent = s.name;
         if (idx === activeSessionIndex) opt1.selected = true;
         mobileSelect.appendChild(opt1);
-
-        const opt2 = document.createElement('option');
-        opt2.value = idx;
-        opt2.textContent = s.name;
-        if (idx === activeSessionIndex) opt2.selected = true;
-        pcVnSelect.appendChild(opt2);
       });
       lucide.createIcons();
     }
