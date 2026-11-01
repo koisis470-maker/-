@@ -2,24 +2,23 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>코코포리아 로그 뷰어 & 백업 아카이버</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>코코포리아 뷰어 & 백업 아카이버</title>
   <!-- Lucide Icons & JSZip CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     :root {
-      --bg-dark: #121216;
-      --bg-card: #1e1e24;
-      --bg-hover: #262630;
+      --bg-dark: #0a0a0f;
+      --bg-card: #15151c;
+      --bg-hover: #1f1f2a;
       --accent: #6366f1;
       --accent-hover: #4f46e5;
-      --text-main: #f1f5f9;
+      --text-main: #f8fafc;
       --text-sub: #94a3b8;
-      --border: #2a2a35;
-      --vn-bg: rgba(18, 18, 22, 0.95);
+      --border: #272735;
+      --vn-bg: rgba(15, 15, 20, 0.95);
 
-      /* Dice Colors */
       --badge-critical: #ffd700;
       --badge-success: #2ed573;
       --badge-failure: #ff4757;
@@ -27,44 +26,80 @@
       --badge-damage: #3b82f6;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background-color: var(--bg-dark);
       color: var(--text-main);
       display: flex;
       height: 100vh;
+      height: 100dvh;
       width: 100vw;
       overflow: hidden;
+      position: fixed;
+      inset: 0;
     }
 
-    /* Sidebar Styles */
+    /* Sidebar / Drawer Styles */
     sidebar {
-      width: 290px;
+      position: fixed;
+      top: 0; bottom: 0; left: 0;
+      width: 300px;
       background-color: var(--bg-card);
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      flex-shrink: 0;
-      z-index: 10;
+      z-index: 100;
+      transform: translateX(-100%);
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 10px 0 30px rgba(0,0,0,0.6);
     }
+    sidebar.open { transform: translateX(0); }
+
+    /* PC Mode Sidebar override */
+    body.pc-mode sidebar {
+      position: static;
+      transform: none !important;
+      box-shadow: none;
+      width: 290px;
+      flex-shrink: 0;
+    }
+    body.pc-mode .sidebar-overlay { display: none !important; }
+    body.pc-mode .mobile-nav-bar { display: none !important; }
+    body.pc-mode .mobile-menu-btn { display: none !important; }
+
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      backdrop-filter: blur(3px);
+    }
+    .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
 
     .sidebar-header {
       padding: 16px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.02);
     }
 
     .sidebar-header h1 {
       font-size: 1.05rem;
       font-weight: 700;
       color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .control-panel {
-      padding: 14px;
+      padding: 12px;
       border-bottom: 1px solid var(--border);
       display: flex;
       flex-direction: column;
@@ -76,26 +111,26 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 9px 12px;
-      border-radius: 8px;
-      font-weight: 500;
-      font-size: 0.85rem;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.88rem;
       cursor: pointer;
       border: 1px solid transparent;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
     }
 
-    .btn-primary { background-color: var(--accent); color: #fff; }
-    .btn-primary:hover { background-color: var(--accent-hover); }
-    .btn-secondary { background-color: #272732; color: var(--text-main); border-color: var(--border); }
-    .btn-secondary:hover { background-color: #333342; }
+    .btn-primary { background-color: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-secondary { background-color: #21212d; color: var(--text-main); border-color: var(--border); }
+    .btn-secondary:active { background-color: #2a2a3a; transform: scale(0.97); }
 
     .file-input-wrapper { display: none; }
 
     .char-section {
       flex: 1;
       overflow-y: auto;
-      padding: 14px;
+      padding: 12px;
     }
 
     .section-title {
@@ -104,22 +139,21 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       color: var(--text-sub);
-      margin-bottom: 12px;
+      margin-bottom: 10px;
+      padding-left: 4px;
     }
 
-    .char-list { display: flex; flex-direction: column; gap: 8px; }
+    .char-list { display: flex; flex-direction: column; gap: 6px; }
 
     .char-item {
       display: flex;
       align-items: center;
       gap: 12px;
       padding: 8px 10px;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid transparent;
-      transition: background 0.15s ease;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
     }
-    .char-item:hover { background: rgba(255,255,255,0.06); border-color: var(--border); }
 
     .char-avatar-container {
       position: relative;
@@ -128,8 +162,8 @@
     }
 
     .char-avatar {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
       background-color: #2a2a35;
       object-fit: cover;
@@ -141,13 +175,13 @@
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      background: rgba(0,0,0,0.4);
+      background: rgba(0,0,0,0.5);
       display: flex;
       align-items: center;
       justify-content: center;
+      color: #fff;
       opacity: 0;
       transition: opacity 0.2s ease;
-      color: #fff;
     }
     .char-avatar-container:hover .char-avatar-overlay { opacity: 1; }
 
@@ -166,38 +200,63 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      background: #0d0d10;
+      background: var(--bg-dark);
       overflow: hidden;
+      width: 100%;
     }
 
     .top-bar {
-      height: 54px;
-      padding: 0 16px;
+      height: 56px;
+      padding: 0 12px;
       background-color: var(--bg-card);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
-      gap: 12px;
+      gap: 10px;
+      z-index: 50;
     }
 
-    /* Flexible Session Tabs */
-    .session-tabs {
+    .menu-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-main);
+      cursor: pointer;
+      padding: 8px;
       display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .left-header-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Session Tabs for PC Mode */
+    .session-tabs {
+      display: none;
       gap: 6px;
       flex: 1;
       overflow-x: auto;
       min-width: 0;
-      padding-bottom: 2px;
     }
+    body.pc-mode .session-tabs { display: flex; }
+    body.pc-mode .mobile-session-select { display: none; }
+
     .session-tabs::-webkit-scrollbar { height: 4px; }
     .session-tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
     .tab {
       flex: 1 1 auto;
-      min-width: 100px;
-      max-width: 200px;
+      min-width: 90px;
+      max-width: 180px;
       padding: 6px 10px;
       border-radius: 6px;
       font-size: 0.82rem;
@@ -210,20 +269,33 @@
       white-space: nowrap;
       color: var(--text-sub);
       border: 1px solid transparent;
-      transition: all 0.15s ease;
     }
-    .tab span {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      flex: 1;
-    }
-    .tab:hover { background: rgba(255,255,255,0.09); color: var(--text-main); }
+    .tab span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
     .tab.active { background-color: var(--accent); color: #fff; font-weight: 600; }
     .tab .close-btn { opacity: 0.6; flex-shrink: 0; }
     .tab .close-btn:hover { opacity: 1; color: #ff6b6b; }
 
-    .view-mode-selector {
+    /* Session Select for Mobile Mode */
+    .mobile-session-select {
+      width: 100%;
+      background: #1e1e28;
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      outline: none;
+    }
+
+    /* View Mode & Device Mode Selectors */
+    .selectors-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mode-selector {
       display: flex;
       background: #121216;
       padding: 3px;
@@ -231,15 +303,19 @@
       border: 1px solid var(--border);
       flex-shrink: 0;
     }
+
     .view-btn {
-      padding: 5px 12px;
-      font-size: 0.8rem;
+      padding: 6px 10px;
+      font-size: 0.78rem;
       border-radius: 6px;
       cursor: pointer;
       border: none;
       background: transparent;
       color: var(--text-sub);
       transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
     .view-btn.active { background: var(--bg-card); color: #fff; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
@@ -247,25 +323,32 @@
     .list-view {
       flex: 1;
       overflow-y: auto;
-      padding: 20px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 12px;
       width: 100%;
+      -webkit-overflow-scrolling: touch;
     }
 
     .chat-card {
       display: flex;
-      gap: 14px;
+      gap: 12px;
       max-width: 860px;
       margin: 0 auto;
       width: 100%;
       align-items: flex-start;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      border-radius: 12px;
     }
+    body.pc-mode .chat-card { background: transparent; border: none; padding: 0; max-width: 860px; }
+    body.pc-mode .chat-card .chat-body { background: var(--bg-card); border: 1px solid var(--border); padding: 10px 14px; border-radius: 10px; }
 
     .chat-avatar {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
       border-radius: 8px;
       object-fit: cover;
       cursor: pointer;
@@ -275,8 +358,8 @@
     }
 
     .chat-avatar-placeholder {
-      width: 44px;
-      height: 44px;
+      width: 40px;
+      height: 40px;
       border-radius: 8px;
       flex-shrink: 0;
       background: #252530;
@@ -285,25 +368,15 @@
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: var(--text-sub);
     }
 
-    .chat-body {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .chat-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 4px;
-      flex-wrap: wrap;
-    }
+    .chat-body { flex: 1; min-width: 0; }
+    .chat-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
     .chat-speaker { font-weight: 700; font-size: 0.9rem; color: #f8fafc; }
     .chat-channel {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: #a5b4fc;
       background: rgba(99, 102, 241, 0.15);
       border: 1px solid rgba(99, 102, 241, 0.3);
@@ -313,10 +386,6 @@
     }
 
     .chat-content {
-      background-color: var(--bg-card);
-      border: 1px solid var(--border);
-      padding: 10px 14px;
-      border-radius: 10px;
       line-height: 1.6;
       font-size: 0.92rem;
       word-break: break-word;
@@ -334,6 +403,7 @@
       border-radius: 6px;
       font-weight: 700;
       font-size: 0.85rem;
+      margin-top: 2px;
     }
     .dice-badge.critical { background: rgba(255, 215, 0, 0.15); color: var(--badge-critical); border: 1px solid var(--badge-critical); }
     .dice-badge.success { background: rgba(46, 213, 115, 0.15); color: var(--badge-success); border: 1px solid var(--badge-success); }
@@ -341,98 +411,98 @@
     .dice-badge.fumble { background: rgba(155, 89, 182, 0.15); color: var(--badge-fumble); border: 1px solid var(--badge-fumble); }
     .dice-badge.damage { background: rgba(59, 130, 246, 0.15); color: var(--badge-damage); border: 1px solid var(--badge-damage); }
 
-    /* VN Visual Novel View */
+    /* Visual Novel View */
     .vn-container {
       position: absolute;
       inset: 0;
-      background: radial-gradient(ellipse at top, #1e1e28 0%, #0a0a0d 100%);
+      background: radial-gradient(circle at center, #1b1b26 0%, #0a0a0f 100%);
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      padding: 20px 40px 30px;
+      justify-content: flex-end;
+      padding: 16px 20px;
       overflow: hidden;
+      touch-action: pan-y;
     }
+    body.pc-mode .vn-container { padding: 30px 60px; justify-content: space-between; }
 
     .vn-header-bar {
-      display: flex;
+      display: none;
       justify-content: space-between;
       align-items: center;
       z-index: 20;
-      background: rgba(18, 18, 22, 0.6);
+      background: rgba(18, 18, 22, 0.7);
       backdrop-filter: blur(8px);
       padding: 8px 16px;
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.08);
     }
+    body.pc-mode .vn-header-bar { display: flex; }
 
-    .vn-session-select {
-      background: #181820;
-      color: #fff;
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      outline: none;
-      cursor: pointer;
-    }
-
-    .vn-dialog-wrapper {
+    .vn-stage {
+      flex: 1;
       position: relative;
-      width: 100%;
-      max-width: 900px;
-      margin: 0 auto;
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+      align-items: flex-end;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 12px;
+      overflow: hidden;
     }
+    body.pc-mode .vn-stage { align-items: center; }
 
     .vn-avatar-large {
-      position: absolute;
-      bottom: calc(100% - 6px);
-      left: 20px;
-      max-height: 420px;
-      max-width: 300px;
+      max-height: 100%;
+      max-width: 85vw;
       object-fit: contain;
       filter: drop-shadow(0 15px 25px rgba(0,0,0,0.8));
       cursor: pointer;
-      z-index: 2;
       transition: transform 0.2s ease;
     }
-    .vn-avatar-large:hover { transform: scale(1.02); }
+    body.pc-mode .vn-avatar-large {
+      position: absolute;
+      bottom: 0;
+      left: 40px;
+      max-height: 450px;
+      max-width: 320px;
+    }
 
     .vn-avatar-placeholder {
-      position: absolute;
-      bottom: calc(100% - 6px);
-      left: 20px;
-      width: 200px;
-      height: 280px;
-      background: rgba(30,30,40,0.7);
-      backdrop-filter: blur(4px);
+      width: 140px;
+      height: 180px;
+      background: rgba(25, 25, 35, 0.8);
       border: 2px dashed rgba(255,255,255,0.15);
       border-radius: 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
       color: var(--text-sub);
-      z-index: 2;
+    }
+    body.pc-mode .vn-avatar-placeholder {
+      position: absolute;
+      bottom: 0;
+      left: 40px;
+      width: 200px;
+      height: 280px;
     }
 
     .vn-dialog-box {
       width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
       background: var(--vn-bg);
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 14px;
-      padding: 20px 24px;
+      padding: 18px 22px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.9);
+      backdrop-filter: blur(12px);
       position: relative;
       z-index: 10;
-      backdrop-filter: blur(12px);
     }
 
     .vn-speaker-title {
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       margin-bottom: 8px;
       color: #fff;
@@ -442,9 +512,11 @@
     }
 
     .vn-text {
-      font-size: 1.05rem;
-      line-height: 1.7;
-      min-height: 64px;
+      font-size: 1.02rem;
+      line-height: 1.65;
+      min-height: 56px;
+      max-height: 140px;
+      overflow-y: auto;
       color: #f1f5f9;
       word-break: break-word;
       white-space: pre-wrap;
@@ -459,18 +531,45 @@
       border-top: 1px solid rgba(255,255,255,0.08);
     }
 
-    /* Modal */
+    /* Bottom Navigation Bar (Mobile Native Feel) */
+    .mobile-nav-bar {
+      height: 60px;
+      background-color: var(--bg-card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-shrink: 0;
+      z-index: 60;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .mobile-nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-sub);
+      font-size: 0.72rem;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      font-weight: 500;
+    }
+    .mobile-nav-item.active { color: var(--accent); font-weight: 700; }
+
+    /* Lightbox Modal */
     .modal {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.85);
-      z-index: 100;
+      background: rgba(0,0,0,0.9);
+      z-index: 200;
       justify-content: center;
       align-items: center;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(5px);
     }
-    .modal img { max-width: 90vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+    .modal img { max-width: 92vw; max-height: 90vh; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
 
     .empty-state {
       display: flex;
@@ -481,17 +580,19 @@
       color: var(--text-sub);
       gap: 12px;
       text-align: center;
-      padding: 20px;
+      padding: 24px;
     }
   </style>
 </head>
-<body>
+<body class="mobile-mode">
 
-  <!-- Sidebar -->
-  <sidebar>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+
+  <!-- Sidebar / Drawer -->
+  <sidebar id="sidebar">
     <div class="sidebar-header">
-      <i data-lucide="dice-5" style="color: var(--accent);"></i>
-      <h1>코코포리아 뷰어</h1>
+      <h1><i data-lucide="dice-5" style="color: var(--accent);"></i> 코코포리아 뷰어</h1>
+      <button class="menu-btn mobile-menu-btn" onclick="toggleSidebar(false)"><i data-lucide="x"></i></button>
     </div>
     
     <div class="control-panel">
@@ -514,7 +615,7 @@
     </div>
 
     <div class="char-section">
-      <div class="section-title">현재 세션 등장 캐릭터</div>
+      <div class="section-title">등장 캐릭터 및 아바타 설정</div>
       <div class="char-list" id="charList">
         <div style="font-size: 0.8rem; color: var(--text-sub); text-align: center; padding: 20px 0;">
           로그를 불러오면 캐릭터 목록이 나타납니다.
@@ -523,16 +624,37 @@
     </div>
   </sidebar>
 
-  <!-- Main Display Area -->
+  <!-- Main Screen -->
   <main>
     <div class="top-bar">
-      <div class="session-tabs" id="sessionTabs">
-        <span style="font-size: 0.82rem; color: var(--text-sub);">불러온 세션 파일이 없습니다.</span>
+      <div class="left-header-area">
+        <button class="menu-btn mobile-menu-btn" onclick="toggleSidebar(true)"><i data-lucide="menu"></i></button>
+        
+        <!-- PC Session Tabs -->
+        <div class="session-tabs" id="sessionTabs">
+          <span style="font-size: 0.82rem; color: var(--text-sub);">불러온 세션 파일이 없습니다.</span>
+        </div>
+
+        <!-- Mobile Session Dropdown -->
+        <div style="flex: 1; min-width: 0;" class="mobile-session-select">
+          <select id="mobileSessionSelect" class="mobile-session-select" onchange="changeActiveSession(this.value)">
+            <option value="-1">불러온 세션이 없습니다</option>
+          </select>
+        </div>
       </div>
-      
-      <div class="view-mode-selector">
-        <button class="view-btn active" id="btnModeList" onclick="switchMode('list')">목록 뷰</button>
-        <button class="view-btn" id="btnModeVn" onclick="switchMode('vn')">비주얼 노벨 뷰</button>
+
+      <div class="selectors-group">
+        <!-- Device Mode Toggle (PC / Mobile) -->
+        <div class="mode-selector">
+          <button class="view-btn active" id="btnModePc" onclick="setDeviceMode('pc')"><i data-lucide="monitor" style="width:14px;"></i> PC</button>
+          <button class="view-btn" id="btnModeMobile" onclick="setDeviceMode('mobile')"><i data-lucide="smartphone" style="width:14px;"></i> 모바일</button>
+        </div>
+
+        <!-- View Mode Selector (List / VN) -->
+        <div class="mode-selector pc-only-view-sel" id="pcViewSelector" style="display:none;">
+          <button class="view-btn active" id="btnViewList" onclick="switchMode('list')">목록 뷰</button>
+          <button class="view-btn" id="btnViewVn" onclick="switchMode('vn')">VN 뷰</button>
+        </div>
       </div>
     </div>
 
@@ -546,43 +668,54 @@
 
     <!-- 2. Visual Novel View -->
     <div class="vn-container" id="vnView" style="display: none;">
+      <!-- PC VN Header -->
       <div class="vn-header-bar">
-        <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-sub);">세션 선택:</span>
-          <select class="vn-session-select" id="vnSessionSelect" onchange="changeVnSession(this.value)"></select>
+          <select id="pcVnSessionSelect" style="background:#181820; color:#fff; border:1px solid var(--border); padding:6px 12px; border-radius:6px; font-size:0.85rem; outline:none;" onchange="changeActiveSession(this.value)"></select>
         </div>
-
-        <div class="view-mode-selector">
+        <div class="mode-selector">
           <button class="view-btn" onclick="switchMode('list')">목록 뷰로 전환</button>
-          <button class="view-btn active">비주얼 노벨 뷰</button>
+          <button class="view-btn active">VN 뷰</button>
         </div>
       </div>
 
-      <div style="flex: 1;"></div>
-
-      <div class="vn-dialog-wrapper">
+      <div class="vn-stage" id="vnTouchZone">
         <img id="vnAvatar" class="vn-avatar-large" src="" alt="Avatar" onclick="openLightbox(this.src)" style="display:none;">
         <div id="vnAvatarPlaceholder" class="vn-avatar-placeholder" style="display:none;">
-          <i data-lucide="user" style="width: 40px; height: 40px; opacity: 0.4;"></i>
-          <span id="vnPlaceholderName" style="font-size: 0.85rem; font-weight: 600;">-</span>
+          <i data-lucide="user" style="width: 38px; height: 38px; opacity: 0.4;"></i>
+          <span id="vnPlaceholderName" style="font-size: 0.82rem; font-weight: 600; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</span>
         </div>
+      </div>
 
-        <div class="vn-dialog-box">
-          <div class="vn-speaker-title">
-            <span id="vnSpeaker">스피커</span>
-            <span id="vnChannel" class="chat-channel">MAIN</span>
-          </div>
-          <div class="vn-text" id="vnText">대사 내용이 여기에 표시됩니다.</div>
-          
-          <div class="vn-controls">
-            <span id="vnProgress" style="font-size: 0.85rem; color: var(--text-sub); font-family: monospace;">0 / 0</span>
-            <div style="display:flex; gap: 8px;">
-              <button class="btn btn-secondary" onclick="prevVnStep()"><i data-lucide="chevron-left"></i> 이전 (←)</button>
-              <button class="btn btn-primary" onclick="nextVnStep()">다음 (→ / Space) <i data-lucide="chevron-right"></i></button>
-            </div>
+      <div class="vn-dialog-box">
+        <div class="vn-speaker-title">
+          <span id="vnSpeaker">스피커</span>
+          <span id="vnChannel" class="chat-channel">MAIN</span>
+        </div>
+        <div class="vn-text" id="vnText">대사 내용이 여기에 표시됩니다.</div>
+        
+        <div class="vn-controls">
+          <span id="vnProgress" style="font-size: 0.8rem; color: var(--text-sub); font-family: monospace;">0 / 0</span>
+          <div style="display:flex; gap: 8px;">
+            <button class="btn btn-secondary" style="padding: 8px 12px; font-size: 0.82rem;" onclick="prevVnStep()"><i data-lucide="chevron-left" style="width:16px;"></i> 이전</button>
+            <button class="btn btn-primary" style="padding: 8px 14px; font-size: 0.82rem;" onclick="nextVnStep()">다음 <i data-lucide="chevron-right" style="width:16px;"></i></button>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Bottom Navigation Bar (Mobile View) -->
+    <div class="mobile-nav-bar">
+      <button class="mobile-nav-item active" id="mNavList" onclick="switchMode('list')">
+        <i data-lucide="list"></i> 목록 뷰
+      </button>
+      <button class="mobile-nav-item" id="mNavVn" onclick="switchMode('vn')">
+        <i data-lucide="tv"></i> VN 뷰
+      </button>
+      <button class="mobile-nav-item" onclick="toggleSidebar(true)">
+        <i data-lucide="users"></i> 캐릭터/메뉴
+      </button>
     </div>
   </main>
 
@@ -594,21 +727,74 @@
   <script>
     lucide.createIcons();
 
-    // App State
     let sessions = [];
     let activeSessionIndex = 0;
     let charAvatars = {};
     let selectedCharForUpload = null;
     let currentVnIndex = 0;
     let currentMode = 'list';
+    let deviceMode = 'pc';
 
-    // Load from LocalStorage on Startup
+    let touchStartX = 0;
+    let touchEndX = 0;
+
     window.addEventListener('DOMContentLoaded', () => {
       loadFromLocalStorage();
+      
+      if (window.innerWidth >= 1024) {
+        setDeviceMode('pc');
+      } else {
+        setDeviceMode('mobile');
+      }
+
+      setupTouchEvents();
       updateUI();
     });
 
-    // File Input Bindings
+    function setupTouchEvents() {
+      const touchZone = document.getElementById('vnTouchZone');
+      touchZone.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+
+      touchZone.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      }, { passive: true });
+    }
+
+    function handleSwipe() {
+      if (currentMode !== 'vn') return;
+      const distance = touchEndX - touchStartX;
+      if (distance < -45) nextVnStep();
+      else if (distance > 45) prevVnStep();
+    }
+
+    function toggleSidebar(show) {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (show) {
+        sidebar.classList.add('open');
+        overlay.classList.add('open');
+      } else {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+      }
+    }
+
+    function setDeviceMode(mode) {
+      deviceMode = mode;
+      document.body.classList.toggle('pc-mode', mode === 'pc');
+      document.body.classList.toggle('mobile-mode', mode === 'mobile');
+      
+      document.getElementById('btnModePc').classList.toggle('active', mode === 'pc');
+      document.getElementById('btnModeMobile').classList.toggle('active', mode === 'mobile');
+      
+      document.getElementById('pcViewSelector').style.display = (mode === 'pc') ? 'flex' : 'none';
+      toggleSidebar(false);
+      updateUI();
+    }
+
     document.getElementById('htmlFilesInput').addEventListener('change', handleHtmlUpload);
     document.getElementById('archInput').addEventListener('change', handleArchUpload);
     document.getElementById('avatarFileInput').addEventListener('change', handleAvatarImageUpload);
@@ -630,14 +816,13 @@
       currentVnIndex = 0;
       saveToLocalStorage();
       updateUI();
+      toggleSidebar(false);
     }
 
-    // HTML Log & Dice Parser
     function parseCocofoliaHtml(htmlContent) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlContent, 'text/html');
       const logs = [];
-
       const elements = doc.querySelectorAll('p, div.chat-item, .log-item, body > div');
       
       elements.forEach(node => {
@@ -664,7 +849,6 @@
         }
 
         dialogueText = dialogueText.replace(/^\[(main|info|system|정보|메인|비밀|귓속말|음성)\]\s*/gi, '');
-
         const diceParsed = parseDiceText(dialogueText);
 
         if (dialogueText && !logs.some(l => l.text === diceParsed.text && l.speaker === speaker)) {
@@ -711,12 +895,9 @@
       }
 
       const damageRollPattern = /([0-9]+[dD][0-9]+[\+\-\d\w\+\-\s\(\)]*)\s*＞\s*([0-9\s\+\[\]]+)\s*＞\s*([0-9]+)$/;
-      const simpleDamageMatch = rawText.match(damageRollPattern);
-
-      if (simpleDamageMatch || (rawText.includes('＞') && /^[0-9dD\+\-\s\(\)\[\]]+$/.test(rawText.split('＞')[0]) && !rawText.includes('CC'))) {
+      if (damageRollPattern.test(rawText) || (rawText.includes('＞') && !rawText.includes('CC'))) {
         const parts = rawText.split('＞');
         const finalValue = parts[parts.length - 1].trim();
-        
         if (!isNaN(finalValue) || /^[0-9]+$/.test(finalValue)) {
           const formula = parts[0].trim();
           return {
@@ -732,13 +913,12 @@
       return { isDice: false, text: rawText };
     }
 
-    // LocalStorage Persistence Functions
     function saveToLocalStorage() {
       try {
         localStorage.setItem('ccf_sessions', JSON.stringify(sessions));
         localStorage.setItem('ccf_avatars', JSON.stringify(charAvatars));
       } catch (e) {
-        console.warn("로컬 저장소 용량 초과 가능성:", e);
+        console.warn("로컬 저장소 저장 실패:", e);
       }
     }
 
@@ -749,12 +929,12 @@
         if (savedSessions) sessions = JSON.parse(savedSessions);
         if (savedAvatars) charAvatars = JSON.parse(savedAvatars);
       } catch (e) {
-        console.error("저장된 데이터를 불러오는 중 오류 발생:", e);
+        console.error("저장소 로드 실패:", e);
       }
     }
 
     function clearLocalStorageData() {
-      if (confirm("브라우저에 저장된 모든 세션과 캐릭터 이미지를 초기화하시겠습니까?")) {
+      if (confirm("저장된 모든 세션 로그와 캐릭터 아바타를 초기화하시겠습니까?")) {
         localStorage.removeItem('ccf_sessions');
         localStorage.removeItem('ccf_avatars');
         sessions = [];
@@ -762,15 +942,13 @@
         activeSessionIndex = 0;
         currentVnIndex = 0;
         updateUI();
+        toggleSidebar(false);
       }
     }
 
     function updateUI() {
-      const hasSessions = sessions.length > 0;
-      document.getElementById('btnExport').disabled = !hasSessions;
-
-      renderTabs();
-      renderVnSessionDropdown();
+      document.getElementById('btnExport').disabled = (sessions.length === 0);
+      renderSessionSelectors();
       renderCharacters();
 
       if (currentMode === 'list') {
@@ -780,12 +958,18 @@
       }
     }
 
-    function renderTabs() {
-      const container = document.getElementById('sessionTabs');
-      container.innerHTML = '';
+    function renderSessionSelectors() {
+      const tabsContainer = document.getElementById('sessionTabs');
+      tabsContainer.innerHTML = '';
+      const mobileSelect = document.getElementById('mobileSessionSelect');
+      mobileSelect.innerHTML = '';
+      const pcVnSelect = document.getElementById('pcVnSessionSelect');
+      pcVnSelect.innerHTML = '';
 
       if (sessions.length === 0) {
-        container.innerHTML = '<span style="font-size: 0.82rem; color: var(--text-sub);">불러온 세션 파일이 없습니다.</span>';
+        tabsContainer.innerHTML = '<span style="font-size: 0.82rem; color: var(--text-sub);">불러온 세션 파일이 없습니다.</span>';
+        mobileSelect.innerHTML = '<option value="-1">불러온 세션이 없습니다</option>';
+        pcVnSelect.innerHTML = '<option value="-1">불러온 세션이 없습니다</option>';
         return;
       }
 
@@ -798,30 +982,25 @@
           currentVnIndex = 0;
           updateUI();
         };
-        container.appendChild(tab);
+        tabsContainer.appendChild(tab);
+
+        const opt1 = document.createElement('option');
+        opt1.value = idx;
+        opt1.textContent = s.name;
+        if (idx === activeSessionIndex) opt1.selected = true;
+        mobileSelect.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = idx;
+        opt2.textContent = s.name;
+        if (idx === activeSessionIndex) opt2.selected = true;
+        pcVnSelect.appendChild(opt2);
       });
       lucide.createIcons();
     }
 
-    function renderVnSessionDropdown() {
-      const select = document.getElementById('vnSessionSelect');
-      select.innerHTML = '';
-      if (sessions.length === 0) {
-        select.innerHTML = '<option value="-1">불러온 세션 없음</option>';
-        return;
-      }
-
-      sessions.forEach((s, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = s.name;
-        if (idx === activeSessionIndex) opt.selected = true;
-        select.appendChild(opt);
-      });
-    }
-
-    function changeVnSession(valIndex) {
-      const idx = parseInt(valIndex, 10);
+    function changeActiveSession(val) {
+      const idx = parseInt(val, 10);
       if (idx >= 0 && idx < sessions.length) {
         activeSessionIndex = idx;
         currentVnIndex = 0;
@@ -829,12 +1008,21 @@
       }
     }
 
+    function closeSession(index, event) {
+      event.stopPropagation();
+      sessions.splice(index, 1);
+      if (activeSessionIndex >= sessions.length) activeSessionIndex = Math.max(0, sessions.length - 1);
+      currentVnIndex = 0;
+      saveToLocalStorage();
+      updateUI();
+    }
+
     function renderCharacters() {
       const charList = document.getElementById('charList');
       charList.innerHTML = '';
       
       if (!sessions[activeSessionIndex]) {
-        charList.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-sub); text-align: center; padding: 20px 0;">로그를 불러오면 캐릭터가 표시됩니다.</div>';
+        charList.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-sub); text-align: center; padding: 15px 0;">로그를 불러오면 캐릭터가 표시됩니다.</div>';
         return;
       }
 
@@ -846,14 +1034,13 @@
       });
 
       if (activeSpeakers.size === 0) {
-        charList.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-sub); text-align: center; padding: 20px 0;">등장하는 캐릭터가 없습니다.</div>';
+        charList.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-sub); text-align: center; padding: 15px 0;">등장하는 캐릭터가 없습니다.</div>';
         return;
       }
 
       activeSpeakers.forEach(name => {
         const item = document.createElement('div');
         item.className = 'char-item';
-        
         const avatarSrc = charAvatars[name] || '';
 
         item.innerHTML = `
@@ -955,7 +1142,7 @@
 
       const vnTextElem = document.getElementById('vnText');
       if (log.isDice) {
-        vnTextElem.innerHTML = `<div class="dice-badge ${log.status}" style="font-size:1.05rem;">🎲 [${escapeHtml(log.skill)}] ${escapeHtml(log.result)}</div>`;
+        vnTextElem.innerHTML = `<div class="dice-badge ${log.status}" style="font-size:0.95rem;">🎲 [${escapeHtml(log.skill)}] ${escapeHtml(log.result)}</div>`;
       } else {
         vnTextElem.innerText = log.text;
       }
@@ -997,19 +1184,13 @@
 
     function switchMode(mode) {
       currentMode = mode;
-      document.getElementById('btnModeList').classList.toggle('active', mode === 'list');
-      document.getElementById('btnModeVn').classList.toggle('active', mode === 'vn');
+      document.getElementById('mNavList').classList.toggle('active', mode === 'list');
+      document.getElementById('mNavVn').classList.toggle('active', mode === 'vn');
+      document.getElementById('btnViewList').classList.toggle('active', mode === 'list');
+      document.getElementById('btnViewVn').classList.toggle('active', mode === 'vn');
+
       document.getElementById('listView').style.display = mode === 'list' ? 'flex' : 'none';
       document.getElementById('vnView').style.display = mode === 'vn' ? 'flex' : 'none';
-      updateUI();
-    }
-
-    function closeSession(index, event) {
-      event.stopPropagation();
-      sessions.splice(index, 1);
-      if (activeSessionIndex >= sessions.length) activeSessionIndex = Math.max(0, sessions.length - 1);
-      currentVnIndex = 0;
-      saveToLocalStorage();
       updateUI();
     }
 
@@ -1060,6 +1241,7 @@
         currentVnIndex = 0;
         saveToLocalStorage();
         updateUI();
+        toggleSidebar(false);
       } catch (err) {
         alert("백업 파일(.ccfarch)을 읽는 도중 오류가 발생했습니다.");
       }
